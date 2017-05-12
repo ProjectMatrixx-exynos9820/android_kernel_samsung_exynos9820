@@ -22,6 +22,7 @@ obj-$(CONFIG_CPUFREQ_DT)		+= cpufreq-dt.o
 obj-$(CONFIG_CPUFREQ_DT_PLATDEV)	+= cpufreq-dt-platdev.o
 
 obj-$(CONFIG_CPUFREQ_DUMMY)		+= dummy-cpufreq.o
+obj-$(CONFIG_FINGERPRINT_BOOST)		+= fp-boost.o
 
 ##################################################################################
 # x86 drivers.
