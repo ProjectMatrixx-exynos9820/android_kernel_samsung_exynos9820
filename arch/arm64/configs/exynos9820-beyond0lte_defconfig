@@ -3,6 +3,9 @@
 # Linux/arm64 4.14.260 Kernel Configuration
 #
 
+# Frandom
+# CONFIG_FRANDOM is not set
+
 CONFIG_LOCALVERSION="-⚡️FrEeRuNnErKeRnEl-v2.3⚡️"
 CONFIG_FINGERPRINT_BOOST=y
 CONFIG_LLVM_POLLY=y
