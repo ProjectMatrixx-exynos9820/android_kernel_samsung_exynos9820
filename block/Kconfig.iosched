@@ -51,6 +51,14 @@ config IOSCHED_SIO
 	  basic merging, trying to keep a minimum overhead. It is aimed
 	  mainly for aleatory access devices (eg: flash devices).
 
+config IOSCHED_ANXIETY
+	tristate "Anxiety I/O scheduler"
+	default n
+	---help---
+	  The Anxiety I/O scheduler prioritizes latency over everything
+	  else. When a request comes in, it will use a lighweight
+	  selection algorithm to swiftly process the current pending task.
+
 config CFQ_GROUP_IOSCHED
 	bool "CFQ Group Scheduling support"
 	depends on IOSCHED_CFQ && BLK_CGROUP
@@ -78,6 +86,9 @@ choice
 	config DEFAULT_SIO
 		bool "SIO" if IOSCHED_SIO=y
 
+	config DEFAULT_ANXIETY
+		bool "Anxiety" if IOSCHED_ANXIETY=y
+
 	config DEFAULT_FIOPS
 		bool "FIOPS" if IOSCHED_FIOPS=y
 
@@ -90,6 +101,7 @@ config DEFAULT_IOSCHED
 	default "noop" if DEFAULT_NOOP
 	default "fiops" if DEFAULT_FIOPS
 	default "sio" if DEFAULT_SIO
+	default "anxiety" if DEFAULT_ANXIETY
 
 config MQ_IOSCHED_DEADLINE
 	tristate "MQ deadline I/O scheduler"
