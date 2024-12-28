@@ -63,6 +63,13 @@ config IOSCHED_MAPLE
 	tristate "Maple I/O scheduler"
 	default n
 
+config IOSCHED_ZEN
+	tristate "Zen I/O scheduler"
+	default n
+	---help---
+	  FCFS, dispatches are back-inserted, deadlines ensure fairness.
+	  Should work best with devices where there is no travel delay.
+
 config CFQ_GROUP_IOSCHED
 	bool "CFQ Group Scheduling support"
 	depends on IOSCHED_CFQ && BLK_CGROUP
@@ -96,6 +103,9 @@ choice
 	config DEFAULT_MAPLE
 		bool "MAPLE" if IOSCHED_MAPLE=y
 
+	config DEFAULT_ZEN
+		bool "ZEN" if IOSCHED_ZEN=y
+
 	config DEFAULT_FIOPS
 		bool "FIOPS" if IOSCHED_FIOPS=y
 
@@ -110,6 +120,7 @@ config DEFAULT_IOSCHED
 	default "sio" if DEFAULT_SIO
 	default "anxiety" if DEFAULT_ANXIETY
 	default "maple" if DEFAULT_MAPLE
+	default "zen" if DEFAULT_ZEN
 
 config MQ_IOSCHED_DEADLINE
 	tristate "MQ deadline I/O scheduler"
