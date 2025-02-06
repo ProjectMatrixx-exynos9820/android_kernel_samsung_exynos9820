@@ -3,9 +3,6 @@
 # Linux/arm64 4.14.260 Kernel Configuration
 #
 
-#Susfs
-CONFIG_KSU_SUSFS=y
-
 #KernelSU
 CONFIG_KSU=y
 
