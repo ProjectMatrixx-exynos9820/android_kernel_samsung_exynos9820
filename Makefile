@@ -530,6 +530,14 @@ ifneq ($(PLATFORM_VERSION), )
 endif
 
 ifeq ($(cc-name),clang)
+KBUILD_CFLAGS	+= $(call cc-option, -mllvm -polly) \
+ 		   $(call cc-option, -mllvm -polly-run-dce) \
+ 		   $(call cc-option, -mllvm -polly-run-inliner) \
+ 		   $(call cc-option, -mllvm -polly-isl-arg=--no-schedule-serialize-sccs) \
+ 		   $(call cc-option, -mllvm -polly-ast-use-context) \
+ 		   $(call cc-option, -mllvm -polly-detect-keep-going) \
+ 		   $(call cc-option, -mllvm -polly-vectorizer=stripmine) \
+ 		   $(call cc-option, -mllvm -polly-invariant-load-hoisting)
 # Individual arch/{arch}/Makefiles should use -EL/-EB to set intended
 # endianness and -m32/-m64 to set word size based on Kconfigs instead of
 # relying on the target triple.
