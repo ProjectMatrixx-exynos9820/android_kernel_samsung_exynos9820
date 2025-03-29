@@ -529,6 +529,13 @@ ifneq ($(PLATFORM_VERSION), )
 	#$(Q)$(CONFIG_SHELL) $(srctree)/scripts/replace_dir.sh "$(srctree)" "security/selinux" "$(SELINUX_DIR)"
 endif
 
+ifdef CONFIG_INLINE_OPTIMIZATION
+KBUILD_CFLAGS	+= -mllvm -inline-threshold=2000
+KBUILD_CFLAGS	+= -mllvm -inlinehint-threshold=3000
+KBUILD_CFLAGS   += -mllvm -unroll-threshold=1200
+KBUILD_LDFLAGS  += --plugin-opt=-import-instr-limit=40
+endif
+
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS	+= $(call cc-option, -mllvm -polly) \
  		   $(call cc-option, -mllvm -polly-run-dce) \
