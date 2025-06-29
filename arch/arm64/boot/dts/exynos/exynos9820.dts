@@ -563,8 +563,8 @@
 					prefer-cpus =	"4-5",
 							"6-7",
 							"0-3";
-					light-task-threshold = <10>;
-					light-task-threshold-s = <6>;
+					light-task-threshold = <5>;
+					light-task-threshold-s = <3>;
 					light-prefer-cpus = "4-5";
 				};
 				prefer-perf1 {
@@ -572,8 +572,8 @@
 					prefer-cpus =	"6-7",
 							"4-5",
 							"0-3";
-					light-task-threshold = <10>;
-					light-task-threshold-s = <4>;
+					light-task-threshold = <5>;
+					light-task-threshold-s = <2>;
 					light-prefer-cpus = "6-7";
 				};
 				prefer-perf2 {
@@ -581,11 +581,11 @@
 					prefer-cpus =	"4-5",
 							"6-7",
 							"0-3";
-					light-task-threshold = <10>;
-					light-task-threshold-s = <6>;
+					light-task-threshold = <5>;
+					light-task-threshold-s = <3>;
 					light-prefer-cpus = "4-5";
-					heavy-task-threshold = <384>;
-					heavy-task-threshold-s = <250>;
+					heavy-task-threshold = <256>;
+					heavy-task-threshold-s = <192>;
 					heavy-prefer-cpus = "6-7";
 				};
 			};
