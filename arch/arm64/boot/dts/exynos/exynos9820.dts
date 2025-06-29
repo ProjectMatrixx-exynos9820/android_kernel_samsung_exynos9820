@@ -5197,11 +5197,11 @@
 			dm-type = <DM_CPU_CL0>;
 
 			max-freq = <1950000>;
-			min-freq = <546000>;
+			min-freq = <936000>;
 			
 			/* PM QoS Class ID*/
-			pm_qos-min-class = <3>;
-			pm_qos-max-class = <4>;
+			pm_qos-min-class = <4>;
+			pm_qos-max-class = <5>;
 
 			#cooling-cells = <2>; /* min followed by max */
 
@@ -5234,12 +5234,12 @@
 			cal-id = <ACPM_DVFS_CPUCL1>;
 			dm-type = <DM_CPU_CL1>;
 
-			max-freq = <2400000>;
-			min-freq = <650000>;
+			max-freq = <2600000>;
+			min-freq = <1378000>;
 
 			/* PM QoS Class ID*/
-			pm_qos-min-class = <5>;
-			pm_qos-max-class = <6>;
+			pm_qos-min-class = <6>;
+			pm_qos-max-class = <7>;
 
 			#cooling-cells = <2>; /* min followed by max */
 
@@ -5300,14 +5300,14 @@
 			dm-type = <DM_CPU_CL2>;
 			need-awake;
 
-			max-freq = <2080000>;
-			min-freq = <624000>;
+			max-freq = <2730000>;
+			min-freq = <1560000>;
 
 			/* PM QoS Class ID*/
-			pm_qos-min-class = <7>;
-			pm_qos-max-class = <8>;
+			pm_qos-min-class = <8>;
+			pm_qos-max-class = <9>;
 
-			pm_qos-booting = <2080000>;
+			pm_qos-booting = <2600000>;
 
 			#cooling-cells = <2>; /* min followed by max */
 
