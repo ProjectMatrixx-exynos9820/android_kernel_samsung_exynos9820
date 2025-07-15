@@ -41,7 +41,7 @@ config KSU_SUSFS
       Patch and Enable SUSFS to kernel with KernelSU.
 
 config KSU_SUSFS_HAS_MAGIC_MOUNT
-    bool "Say yes if the current KernelSU repo has magic mount implemented (default y)"
+    bool "Say yes if the current KernelSU repo has magic mount implemented (default n)"
     depends on KSU
     default y
     help
