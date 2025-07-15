@@ -9,11 +9,11 @@ config KSU
 	  To compile as a module, choose M here: the
 	  module will be called kernelsu.
 
-config KSU_WITH_KPROBES
+config KSU_KPROBES_HOOK
 	bool "Use kprobes for kernelsu"
 	depends on KSU
 	depends on KPROBES
-	default n
+	default y
 	help
 	  Disable if you use manual hooks.
 
@@ -32,16 +32,25 @@ config KSU_ALLOWLIST_WORKAROUND
           Enable session keyring init workaround for problematic devices.
           Useful for situations where the SU allowlist is not kept after a reboot.
 
+config KSU_LSM_SECURITY_HOOKS
+	bool "use lsm security hooks"
+        depends on KSU
+        default y
+	help
+	  Disabling this is mostly only useful for kernel 4.1 and older.
+	  Make sure to implement manual hooks on security/security.c.
+
 menu "KernelSU - SUSFS"
 config KSU_SUSFS
     bool "KernelSU addon - SUSFS"
     depends on KSU
+    depends on THREAD_INFO_IN_TASK
     default y
     help
       Patch and Enable SUSFS to kernel with KernelSU.
 
 config KSU_SUSFS_HAS_MAGIC_MOUNT
-    bool "Say yes if the current KernelSU repo has magic mount implemented (default n)"
+    bool "Say yes if the current KernelSU repo has magic mount implemented (default y)"
     depends on KSU
     default y
     help
@@ -54,7 +63,7 @@ config KSU_SUSFS_SUS_PATH
     default y
     help
       - Allow hiding the user-defined path and all its sub-paths from various system calls.
-      - tmpfs filesystem is not allowed to be added. 
+      - Includes temp fix for the leaks of app path in /sdcard/Android/data directory.
       - Effective only on zygote spawned user app process.
       - Use with cautious as it may cause performance loss and will be vulnerable to side channel attacks,
         just disable this feature if it doesn't work for you or you don't need it at all.
@@ -94,16 +103,6 @@ config KSU_SUSFS_SUS_KSTAT
     help
       - Allow spoofing the kstat of user-defined file/directory.
       - Effective only on zygote spawned user app process.
-
-config KSU_SUSFS_SUS_OVERLAYFS
-    bool "Enable to automatically spoof kstat and kstatfs for overlayed files/directories"
-    depends on KSU_SUSFS
-    default n
-    help
-      - Automatically spoof the kstat and kstatfs for overlayed files/directories.
-      - Enable it if you are using legacy KernelSU and dont have auto hide features enabled.
-      - No susfs command is needed in userspace.
-      - Effective on all processes.
 
 config KSU_SUSFS_TRY_UMOUNT
     bool "Enable to use ksu's ksu_try_umount"
