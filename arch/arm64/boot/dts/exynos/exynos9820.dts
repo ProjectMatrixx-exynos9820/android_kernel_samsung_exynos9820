@@ -4971,8 +4971,8 @@
 			device_type = "freqvar-tune";
 			shared-cpus = "0-3";
 
-			boost_table = < 95 1053000 75 1950000 60 >;
-			up_rate_limit_table = < 0 >;
+			boost_table = < 160 949000 123 1300000 100 >;
+			up_rate_limit_table = < 4 >;
 			down_rate_limit_table = < 4 >;
 			st_table = < 5 >;
 		};
@@ -4980,8 +4980,8 @@
 			device_type = "freqvar-tune";
 			shared-cpus = "4-5";
 
-			boost_table = < 95 1508000 75 2600000 60 >;
-			up_rate_limit_table = < 0 >;
+			boost_table = < 160 962000 123 1222000 100 >;
+			up_rate_limit_table = < 4 >;
 			down_rate_limit_table = < 4 >;
 			st_table = < 5 >;
 		};
@@ -4989,8 +4989,8 @@
 			device_type = "freqvar-tune";
 			shared-cpus = "6-7";
 
-			boost_table = < 95 1820000 75 2730000 60 >;
-			up_rate_limit_table = < 0 >;
+			boost_table = < 160 936000 123 1378000 100 >;
+			up_rate_limit_table = < 4 >;
 			down_rate_limit_table = < 4 >;
 			st_table = < 5 >;
 		};
@@ -5023,9 +5023,9 @@
 			device_type = "cpufreq-userctrl";
 			shared-cpus = "0-3";
 
-			user-default-qos = <949000>;
+			user-default-qos = <806000>;
 			user-boost = <0>;
-			ucc-index = <1>;
+			ucc-index = <0>;
 			user-boost-game = <0>;
 		};
 
@@ -5033,7 +5033,7 @@
 			device_type = "cpufreq-userctrl";
 			shared-cpus = "4-5";
 
-			user-default-qos = <962000>;
+			user-default-qos = <845000>;
 			user-boost = <3>;
 			ucc-index = <1>;
 			user-boost-game = <1>;
@@ -5092,7 +5092,7 @@
 			device_type = "cpufreq-userctrl";
 			shared-cpus = "6-7";
 
-			user-default-qos = <1040000>;
+			user-default-qos = <936000>;
 			user-boost = <2>;
 			ucc-index = <2>;
 			user-boost-game = <2>;
@@ -5197,8 +5197,8 @@
 			dm-type = <DM_CPU_CL0>;
 
 			max-freq = <1950000>;
-			min-freq = <546000>;
-			
+			min-freq = <442000>;
+
 			/* PM QoS Class ID*/
 			pm_qos-min-class = <3>;
 			pm_qos-max-class = <4>;
@@ -5235,7 +5235,7 @@
 			dm-type = <DM_CPU_CL1>;
 
 			max-freq = <2400000>;
-			min-freq = <650000>;
+			min-freq = <507000>;
 
 			/* PM QoS Class ID*/
 			pm_qos-min-class = <5>;
@@ -5301,7 +5301,7 @@
 			need-awake;
 
 			max-freq = <2080000>;
-			min-freq = <624000>;
+			min-freq = <520000>;
 
 			/* PM QoS Class ID*/
 			pm_qos-min-class = <7>;
@@ -5369,7 +5369,7 @@
 			/* Delay time */
 			use_delay_time = "false";
 
-			freq_info = <2094000 845000 421000 421000 2094000 845000>;
+			freq_info = <2094000 421000 421000 421000 2094000 421000>;
 			/* initial_freq, default_qos, suspend_freq, min_freq, max_freq reboot_freq */
 
 			/* Booting value */
@@ -5381,7 +5381,7 @@
 
 			bts_update = "true";
 			dfs_id = <ACPM_DVFS_MIF>;
-			acpm-ipc-channel = <0>;
+			acpm-ipc-channel = <1>;
 			use_acpm = "true";
 			update_fvp = "true";
 
@@ -5391,7 +5391,7 @@
 			um_list = <0x1A100000 0x1A110000 0x1A1C0000 0x1A1D0000 0x1A120000 0x1A130000 0x1A140000 0x1A150000 0x1A160000 0x1A170000>;
 
 			use_alt_dvfs;
-			polling_ms = <5>;
+			polling_ms = <0>;
 			target_load = "60 676000:84 845000:87 1014000:90 1352000:95 1794000:97 2093000:99";
 			min_sample_time = <50>;
 			hold_sample_time = <100>;
@@ -5412,7 +5412,7 @@
 			/* Delay time */
 			use_delay_time = "false";
 
-			freq_info = <534000 267000 100000 100000 534000 534000>;
+			freq_info = <534000 200000 100000 100000 534000 534000>;
 			/* <initial_freq, default_qos, suspend_freq, min, max, reboot_freq> */
 
 			/* Booting value */
