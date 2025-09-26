@@ -60,4 +60,4 @@ config ZRAM_ENTROPY_THRESHOLD
 config ZRAM_SIZE_OVERRIDE
 	int "zram size to set from kernel"
 	range 1 8
-	default 2
+	default 4
