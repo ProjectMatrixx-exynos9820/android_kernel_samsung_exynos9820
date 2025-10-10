@@ -541,6 +541,14 @@ KBUILD_CFLAGS   += -mllvm -unroll-threshold=1200
 KBUILD_LDFLAGS  += --plugin-opt=-import-instr-limit=40
 endif
 
+ifdef CONFIG_LLVM_MLGO_REGISTER
+# Enable MLGO for register allocation. default, release, development
+KBUILD_CFLAGS	+= -mllvm -regalloc-enable-advisor=release \
+		   -mllvm -enable-local-reassign
+KBUILD_LDFLAGS	+= -mllvm -regalloc-enable-advisor=release \
+		   -mllvm -enable-local-reassign
+endif
+
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS	+= $(call cc-option, -mllvm -polly) \
  		   $(call cc-option, -mllvm -polly-run-dce) \
