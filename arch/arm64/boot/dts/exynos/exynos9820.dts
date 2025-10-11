@@ -396,8 +396,8 @@
 				idle-state-name = "c2";
 				compatible = "exynos,idle-state";
 				arm,psci-suspend-param = <0x0010000>;
-				entry-latency-us = <70>;
-				exit-latency-us = <160>;
+				entry-latency-us = <55>;
+				exit-latency-us = <125>;
 				min-residency-us = <2000>;
 				status = "okay";
 			};
@@ -406,9 +406,9 @@
 				idle-state-name = "c2";
 				compatible = "exynos,idle-state";
 				arm,psci-suspend-param = <0x0010000>;
-				entry-latency-us = <150>;
-				exit-latency-us = <190>;
-				min-residency-us = <2500>;
+				entry-latency-us = <120>;
+				exit-latency-us = <155>;
+				min-residency-us = <2700>;
 				status = "okay";
 			};
 
@@ -416,8 +416,8 @@
 				idle-state-name = "c2";
 				compatible = "exynos,idle-state";
 				arm,psci-suspend-param = <0x0010000>;
-				entry-latency-us = <235>;
-				exit-latency-us = <220>;
+				entry-latency-us = <190>;
+				exit-latency-us = <175>;
 				min-residency-us = <3500>;
 				status = "okay";
 			};
@@ -427,26 +427,26 @@
 			ANANKE_ENERGY: ananke-energy {
 				capacity-mips = <272>;
 				power-coefficient = <160>;
-				capacity-mips-s = <215>;
-				power-coefficient-s = <130>;
+				capacity-mips-s = <225>;
+				power-coefficient-s = <135>;
 
 				capacity-weight = <1>;
 				energy-weight = <1>;
 			};
 			PROMETHEUS_ENERGY: prometheus-energy {
 				capacity-mips = <531>;
-				power-coefficient = <320>;
-				capacity-mips-s = <346>;
-				power-coefficient-s = <259>;
+				power-coefficient = <330>;
+				capacity-mips-s = <360>;
+				power-coefficient-s = <270>;
 
 				capacity-weight = <2>;
 				energy-weight = <1>;
 			};
 			CHEETAH_ENERGY: cheetah-energy {
-				capacity-mips = <785>;
+				capacity-mips = <780>;
 				power-coefficient = <760>;
-				capacity-mips-s = <365>;
-				power-coefficient-s = <506>;
+				capacity-mips-s = <385>;
+				power-coefficient-s = <530>;
 
 				capacity-weight = <1>;
 				energy-weight = <3>;
@@ -458,27 +458,27 @@
 			ontime {
 				/* little cores */
 				coregroup0 {
-					lower-boundary = <0>;
-					upper-boundary = <42>;
+					lower-boundary = <5>;
+					upper-boundary = <35>;
 					lower-boundary-s = <0>;
-					upper-boundary-s = <30>;
+					upper-boundary-s = <25>;
 					coverage-ratio = <100>;
 				};
 				/* middle cores */
 				coregroup1 {
-					lower-boundary = <13>;
-					upper-boundary = <72>;
-					lower-boundary-s = <10>;
-					upper-boundary-s = <85>;
-					coverage-ratio = <80>;
+					lower-boundary = <8>;
+					upper-boundary = <65>;
+					lower-boundary-s = <7>;
+					upper-boundary-s = <75>;
+					coverage-ratio = <90>;
 				};
 				/* big cores */
 				coregroup2 {
-					lower-boundary = <20>;
+					lower-boundary = <12>;
 					upper-boundary = <0xFFFFFFFF>;
-					lower-boundary-s = <65>;
+					lower-boundary-s = <50>;
 					upper-boundary-s = <0xFFFFFFFF>;
-					coverage-ratio = <80>;
+					coverage-ratio = <90>;
 				};
 			};
 
@@ -489,19 +489,19 @@
 					cpus =	"0-3",
 						"4-5",
 						"6-7";
-					ratio =	<25>,
-						<25>,
-						<30>;
+					ratio =	<18>,
+						<18>,
+						<22>;
 				};
 				overutil-level1 {
 					cpus =	"0-5",
 						"6-7";
-					ratio =	<DEFAULT_RATIO>,
-						<DEFAULT_RATIO>;
+					ratio =	<75>,
+						<75>;
 				};
 				overutil-level2 {
 					cpus = "0-7";
-					ratio = <DEFAULT_RATIO>;
+					ratio = <75>;
 				};
 			};
 
@@ -515,12 +515,12 @@
 				/* middle cores */
 				coregroup1 {
 					coverage-ratio = <30>;
-					active-ratio = <3>;
+					active-ratio = <4>;
 				};
 				/* big cores */
 				coregroup2 {
 					coverage-ratio = <30>;
-					active-ratio = <5>;
+					active-ratio = <7>;
 				};
 			};
 
@@ -528,17 +528,17 @@
 				/* little cores */
 				coregroup0 {
 					active-ratio-limit = <43>;
-					active-ratio-boost = <42>;
+					active-ratio-boost = <45>;
 				};
 				/* middle cores */
 				coregroup1 {
 					active-ratio-limit = <48>;
-					active-ratio-boost = <35>;
+					active-ratio-boost = <38>;
 				};
 				/* big cores */
 				coregroup2 {
-					active-ratio-limit = <30>;
-					active-ratio-boost = <0>;
+					active-ratio-limit = <33>;
+					active-ratio-boost = <3>;
 				};
 			};
 
@@ -568,12 +568,12 @@
 					light-prefer-cpus = "4-5";
 				};
 				prefer-perf1 {
-					boost = <2>;
+					boost = <3>;
 					prefer-cpus =	"6-7",
 							"4-5",
 							"0-3";
-					light-task-threshold = <10>;
-					light-task-threshold-s = <4>;
+					light-task-threshold = <9>;
+					light-task-threshold-s = <5>;
 					light-prefer-cpus = "6-7";
 				};
 				prefer-perf2 {
@@ -581,11 +581,11 @@
 					prefer-cpus =	"4-5",
 							"6-7",
 							"0-3";
-					light-task-threshold = <10>;
+					light-task-threshold = <9>;
 					light-task-threshold-s = <6>;
 					light-prefer-cpus = "4-5";
-					heavy-task-threshold = <384>;
-					heavy-task-threshold-s = <250>;
+					heavy-task-threshold = <350>;
+					heavy-task-threshold-s = <225>;
 					heavy-prefer-cpus = "6-7";
 				};
 			};
@@ -4952,7 +4952,7 @@
 			shared-cpus = "4-5";
 
 			enabled = <1>;          /* Enabled */
-			expired_time = <80>;    /* 80ms */
+			expired_time = <40>;    /* 80ms */
 			qos_min_class = <5>;
 		};
 
@@ -4971,28 +4971,28 @@
 			device_type = "freqvar-tune";
 			shared-cpus = "0-3";
 
-			boost_table = < 160 949000 123 1300000 100 >;
-			up_rate_limit_table = < 4 >;
-			down_rate_limit_table = < 4 >;
-			st_table = < 5 >;
+			boost_table = < 185 1053000 145 1456000 110 >;
+			up_rate_limit_table = < 2 >;
+			down_rate_limit_table = < 8 >;
+			st_table = < 4 >;
 		};
 		domain@1 {
 			device_type = "freqvar-tune";
 			shared-cpus = "4-5";
 
-			boost_table = < 160 962000 123 1222000 100 >;
-			up_rate_limit_table = < 4 >;
-			down_rate_limit_table = < 4 >;
-			st_table = < 5 >;
+			boost_table = < 170 962000 133 1222000 110 >;
+			up_rate_limit_table = < 1 >;
+			down_rate_limit_table = < 10 >;
+			st_table = < 4 >;
 		};
 		domain@2 {
 			device_type = "freqvar-tune";
 			shared-cpus = "6-7";
 
-			boost_table = < 160 936000 123 1378000 100 >;
-			up_rate_limit_table = < 4 >;
-			down_rate_limit_table = < 4 >;
-			st_table = < 5 >;
+			boost_table = < 170 936000 133 1378000 110 >;
+			up_rate_limit_table = < 1 >;
+			down_rate_limit_table = < 12 >;
+			st_table = < 3 >;
 		};
 	};
 
@@ -5023,7 +5023,7 @@
 			device_type = "cpufreq-userctrl";
 			shared-cpus = "0-3";
 
-			user-default-qos = <806000>;
+			user-default-qos = <1157000>;
 			user-boost = <0>;
 			ucc-index = <0>;
 			user-boost-game = <0>;
@@ -5033,7 +5033,7 @@
 			device_type = "cpufreq-userctrl";
 			shared-cpus = "4-5";
 
-			user-default-qos = <845000>;
+			user-default-qos = <1222000>;
 			user-boost = <3>;
 			ucc-index = <1>;
 			user-boost-game = <1>;
@@ -5092,7 +5092,7 @@
 			device_type = "cpufreq-userctrl";
 			shared-cpus = "6-7";
 
-			user-default-qos = <936000>;
+			user-default-qos = <1378000>;
 			user-boost = <2>;
 			ucc-index = <2>;
 			user-boost-game = <2>;
@@ -5197,7 +5197,7 @@
 			dm-type = <DM_CPU_CL0>;
 
 			max-freq = <1950000>;
-			min-freq = <442000>;
+			min-freq = <546000>;
 
 			/* PM QoS Class ID*/
 			pm_qos-min-class = <3>;
@@ -5235,7 +5235,7 @@
 			dm-type = <DM_CPU_CL1>;
 
 			max-freq = <2400000>;
-			min-freq = <507000>;
+			min-freq = <650000>;
 
 			/* PM QoS Class ID*/
 			pm_qos-min-class = <5>;
@@ -5301,7 +5301,7 @@
 			need-awake;
 
 			max-freq = <2080000>;
-			min-freq = <520000>;
+			min-freq = <819000>;
 
 			/* PM QoS Class ID*/
 			pm_qos-min-class = <7>;
@@ -5369,11 +5369,11 @@
 			/* Delay time */
 			use_delay_time = "false";
 
-			freq_info = <2094000 421000 421000 421000 2094000 421000>;
+			freq_info = <2094000 676000 421000 421000 2094000 421000>;
 			/* initial_freq, default_qos, suspend_freq, min_freq, max_freq reboot_freq */
 
 			/* Booting value */
-			boot_info = <40 2093000>;
+			boot_info = <60 2093000>;
 			/* boot_qos_timeout, boot_freq */
 
 			/* governor data */
@@ -5392,8 +5392,8 @@
 
 			use_alt_dvfs;
 			polling_ms = <0>;
-			target_load = "60 676000:84 845000:87 1014000:90 1352000:95 1794000:97 2093000:99";
-			min_sample_time = <50>;
+			target_load = "55 676000:79 845000:82 1014000:85 1352000:90 1794000:95 2093000:98";
+			min_sample_time = <40>;
 			hold_sample_time = <100>;
 			hispeed_load = <98>;
 			hispeed_freq = <1014000>;
@@ -5412,11 +5412,11 @@
 			/* Delay time */
 			use_delay_time = "false";
 
-			freq_info = <534000 200000 100000 100000 534000 534000>;
+			freq_info = <534000 400000 134000 134000 534000 534000>;
 			/* <initial_freq, default_qos, suspend_freq, min, max, reboot_freq> */
 
 			/* Booting value */
-			boot_info = <40 534000>;
+			boot_info = <60 534000>;
 			/* boot_qos_timeout, boot_freq */
 
 			/* governor data */
@@ -5441,7 +5441,7 @@
 			/* Delay time */
 			use_delay_time = "false";
 
-			freq_info = <690000 630000 630000 630000 690000 690000>;
+			freq_info = <690000 650000 650000 650000 690000 690000>;
 			/* <initial_freq, default_qos, suspend_freq, min, max, reboot_freq> */
 
 			/* Booting value */
@@ -5660,8 +5660,8 @@
 		sensors = <1984>;	/* 0x7C0 */
 		sensing_mode = "balance";
 		hotplug_enable = <1>;
-		hotplug_in_threshold = <91>;
-		hotplug_out_threshold = <96>;
+		hotplug_in_threshold = <85>;
+		hotplug_out_threshold = <99>;
 		#include "exynos9810-tmu-sensor-conf.dtsi"
 	};
 
@@ -5740,7 +5740,7 @@
 				};
 				big_control_temp: big-control-temp {
 					temperature = <83000>; /* millicelsius */
-					hysteresis = <5000>; /* millicelsius */
+					hysteresis = <3000>; /* millicelsius */
 					type = "passive";
 				};
 				big_alert0: big-alert0 {
@@ -5805,7 +5805,7 @@
 				};
 				mid_control_temp: mid-control-temp {
 					temperature = <83000>; /* millicelsius */
-					hysteresis = <5000>; /* millicelsius */
+					hysteresis = <3000>; /* millicelsius */
 					type = "passive";
 				};
 				mid_alert0: mid-alert0 {
@@ -5942,17 +5942,17 @@
 			trips {
 				gpu_cold: gpu-cold {
 					temperature = <20000>;
-					hysteresis = <5000>; /* millicelsius */
+					hysteresis = <4000>; /* millicelsius */
 					type = "active";
 				};
 				gpu_switch_on: gpu-switch-on {
-					temperature = <78000>; /* millicelsius */
+					temperature = <76000>; /* millicelsius */
 					hysteresis = <2000>; /* millicelsius */
 					type = "active";
 				};
 				gpu_control_temp: gpu-control-temp {
-					temperature = <88000>; /* millicelsius */
-					hysteresis = <5000>; /* millicelsius */
+					temperature = <90000>; /* millicelsius */
+					hysteresis = <3000>; /* millicelsius */
 					type = "passive";
 				};
 				gpu_alert0: gpu-alert0 {
