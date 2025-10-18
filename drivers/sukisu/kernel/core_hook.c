@@ -528,7 +528,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	bool saved_umount_flag = false;
 #ifdef CONFIG_KSU_MANUAL_SU
     if (is_manual_su_cmd || is_system_uid()) {
-        saved_umount_flag = test_and_clear_ti_thread_flag(&current->thread_info, TIF_PROC_UMOUNTED);
+        saved_umount_flag = test_and_clear_ti_thread_flag(&current->thread_info, TIF_NON_ROOT_USER_APP_PROC);
     }
 #endif
 	// - We straight up check if process is supposed to be umounted, return 0 if so
@@ -1394,7 +1394,7 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 	}
 #if defined(CONFIG_KSU_SUSFS) && defined(CONFIG_KSU_MANUAL_SU)
     if (unlikely(saved_umount_flag))
-        set_ti_thread_flag(&current->thread_info, TIF_PROC_UMOUNTED);
+        set_ti_thread_flag(&current->thread_info, TIF_NON_ROOT_USER_APP_PROC);
 #endif
 
 	return 0;
