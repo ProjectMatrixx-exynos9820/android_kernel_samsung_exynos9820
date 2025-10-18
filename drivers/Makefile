@@ -193,7 +193,6 @@ obj-$(CONFIG_FSI)		+= fsi/
 obj-$(CONFIG_TEE)		+= tee/
 obj-$(CONFIG_MULTIPLEXER)	+= mux/
 obj-$(CONFIG_GNSS)		+= gnss/
-obj-$(CONFIG_KSU)		+= kernelsu/
 
 # CCIC
 obj-y	+= ccic/
@@ -242,3 +241,7 @@ obj-$(CONFIG_SEC_EXT)		+= samsung/
 
 # SPU signature verify
 obj-$(CONFIG_SPU_VERIFY) += spu_verify/
+
+# Kernel SU variants
+obj-$(CONFIG_KSU_NEXT)		+= kernelsu/kernel/
+obj-$(CONFIG_KSU_SUKI)		+= sukisu/kernel/
