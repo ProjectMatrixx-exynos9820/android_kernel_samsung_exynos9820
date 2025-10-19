@@ -3,6 +3,7 @@
 #include <linux/gfp.h>
 #include <linux/kernel.h>
 #include <linux/slab.h>
+#include <linux/string.h>
 #include <linux/version.h>
 #ifdef CONFIG_KSU_DEBUG
 #include <linux/moduleparam.h>
@@ -13,12 +14,13 @@
 #else
 #include <crypto/sha.h>
 #endif
-
 #include "apk_sign.h"
 #include "klog.h" // IWYU pragma: keep
 #include "kernel_compat.h"
 #include "throne_tracker.h"
 
+static unsigned int expected_manager_size = EXPECTED_MANAGER_SIZE;
+static char expected_manager_hash[SHA256_DIGEST_SIZE * 2 + 1] = EXPECTED_MANAGER_HASH;
 
 struct sdesc {
 	struct shash_desc shash;
@@ -315,23 +317,11 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 
 #endif
 
-bool ksu_is_manager_apk(char *path)
+bool is_manager_apk(char *path)
 {
-	int tries = 0;
+	// set debug info to print size and hash to kernel log
+	pr_info("%s: expected size: %u, expected hash: %s\n",
+		path, expected_manager_size, expected_manager_hash);
 
-	while (tries++ < 10) {
-		if (!is_lock_held(path))
-			break;
-
-		pr_info("%s: waiting for %s\n", __func__, path);
-		msleep(100);
-	}
-
-	// let it go, if retry fails, check_v2_signature will fail to open it anyway
-	if (tries == 10) {
-		pr_info("%s: timeout for %s\n", __func__, path);
-		return false;
-	}
-
-	return check_v2_signature(path, EXPECTED_NEXT_SIZE, EXPECTED_NEXT_HASH);
+	return check_v2_signature(path, expected_manager_size, expected_manager_hash);
 }
