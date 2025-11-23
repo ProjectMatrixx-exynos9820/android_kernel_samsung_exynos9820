@@ -19,12 +19,12 @@ endchoice
 
 choice
 	prompt "Hook method"
+	default KSU_KPROBES_HOOK
 	help
 	  Select which hook method to use.
 
 config KSU_KPROBES_HOOK
 	bool "Use kprobes"
-	depends on KPROBES
 	help
 	  Use kprobes for function hooking.
 
