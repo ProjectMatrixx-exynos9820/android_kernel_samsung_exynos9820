@@ -39,6 +39,7 @@
 
 #if defined(CONFIG_KSU_SUSFS_SUS_MOUNT) || defined(CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT)
 extern bool susfs_is_current_ksu_domain(void);
+extern bool susfs_is_current_zygote_domain(void);
 extern bool susfs_is_boot_completed_triggered;
 #endif // #if defined(CONFIG_KSU_SUSFS_SUS_MOUNT) || defined(CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT)
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
