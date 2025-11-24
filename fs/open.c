@@ -362,7 +362,7 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
 }
 
 #ifdef CONFIG_KSU_MANUAL_HOOK
-extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
+extern __attribute__((hot, always_inline)) int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 			                    int *flags);
 #endif
 
