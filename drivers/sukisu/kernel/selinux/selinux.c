@@ -1,18 +1,11 @@
-#include <linux/version.h>
+#include "linux/cred.h"
+#include "linux/sched.h"
+#include "linux/security.h"
+#include "linux/version.h"
 #include "selinux_defs.h"
 #include "../klog.h" // IWYU pragma: keep
 
 #define KERNEL_SU_DOMAIN "u:r:su:s0"
-
-#ifdef CONFIG_KSU_SUSFS
-#define KERNEL_INIT_DOMAIN "u:r:init:s0"
-#define KERNEL_ZYGOTE_DOMAIN "u:r:zygote:s0"
-#define KERNEL_KERNEL_DOMAIN "u:r:kernel:s0"
-u32 susfs_ksu_sid = 0;
-u32 susfs_init_sid = 0;
-u32 susfs_zygote_sid = 0;
-u32 susfs_kernel_sid = 0;
-#endif
 
 static int transive_to_domain(const char *domain)
 {
@@ -34,20 +27,19 @@ static int transive_to_domain(const char *domain)
 		pr_info("security_secctx_to_secid %s -> sid: %d, error: %d\n",
 			domain, sid, error);
 	}
-
 	if (!error) {
 		tsec->sid = sid;
 		tsec->create_sid = 0;
 		tsec->keycreate_sid = 0;
 		tsec->sockcreate_sid = 0;
 	}
-
 	return error;
 }
 
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(4, 19, 0)
-bool __maybe_unused is_ksu_transition(const struct task_security_struct *old_tsec,
-			const struct task_security_struct *new_tsec)
+bool __maybe_unused
+is_ksu_transition(const struct task_security_struct *old_tsec,
+		  const struct task_security_struct *new_tsec)
 {
 	static u32 ksu_sid;
 	char *secdata;
@@ -55,7 +47,8 @@ bool __maybe_unused is_ksu_transition(const struct task_security_struct *old_tse
 	bool allowed = false;
 
 	if (!ksu_sid)
-		security_secctx_to_secid(KERNEL_SU_DOMAIN, strlen(KERNEL_SU_DOMAIN), &ksu_sid);
+		security_secctx_to_secid(KERNEL_SU_DOMAIN,
+					 strlen(KERNEL_SU_DOMAIN), &ksu_sid);
 
 	if (security_secid_to_secctx(old_tsec->sid, &secdata, &seclen))
 		return false;
@@ -65,6 +58,7 @@ bool __maybe_unused is_ksu_transition(const struct task_security_struct *old_tse
 	return allowed;
 }
 #endif
+
 
 void setup_selinux(const char *domain)
 {
@@ -88,7 +82,7 @@ bool getenforce(void)
 	return __is_selinux_enforcing();
 }
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)) &&                         \
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)) &&						 \
 	!defined(KSU_COMPAT_HAS_CURRENT_SID)
 /*
  * get the subjective security ID of the current task
@@ -101,69 +95,106 @@ static inline u32 current_sid(void)
 }
 #endif
 
-bool is_ksu_domain(void)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 14, 0)
+struct lsm_context {
+	char *context;
+	u32 len;
+};
+
+static int __security_secid_to_secctx(u32 secid, struct lsm_context *cp)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	struct lsm_context ctx;
+	return security_secid_to_secctx(secid, &cp->context, &cp->len);
+}
+static void __security_release_secctx(struct lsm_context *cp)
+{
+	security_release_secctx(cp->context, cp->len);
+}
 #else
-	char *domain;
-	u32 seclen;
-#endif
-	bool result;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	int err = security_secid_to_secctx(current_sid(), &ctx);
-#else
-	int err = security_secid_to_secctx(current_sid(), &domain, &seclen);
+#define __security_secid_to_secctx security_secid_to_secctx
+#define __security_release_secctx security_release_secctx
 #endif
 
-	if (err) {
+bool is_task_ksu_domain(const struct cred *cred)
+{
+	struct lsm_context ctx;
+	bool result;
+	if (!cred) {
 		return false;
 	}
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	result = strncmp(KERNEL_SU_DOMAIN, ctx.context, ctx.len) == 0;
-	security_release_secctx(&ctx);
-#else
-	result = strncmp(KERNEL_SU_DOMAIN, domain, seclen) == 0;
-	security_release_secctx(domain, seclen);
-#endif
-	return result;
-}
-
-bool is_zygote(void *sec)
-{
-	struct task_security_struct *tsec = (struct task_security_struct *)sec;
+	const struct task_security_struct *tsec = cred->security;
 	if (!tsec) {
 		return false;
 	}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	struct lsm_context ctx;
-#else
-	char *domain;
-	u32 seclen;
-#endif
-	bool result;
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	int err = security_secid_to_secctx(tsec->sid, &ctx);
-#else
-	int err = security_secid_to_secctx(tsec->sid, &domain, &seclen);
-#endif
+	int err = __security_secid_to_secctx(tsec->sid, &ctx);
 	if (err) {
 		return false;
 	}
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	result = strncmp("u:r:zygote:s0", ctx.context, ctx.len) == 0;
-	security_release_secctx(&ctx);
-#else
-	result = strncmp("u:r:zygote:s0", domain, seclen) == 0;
-	security_release_secctx(domain, seclen);
-#endif
+	result = strncmp(KERNEL_SU_DOMAIN, ctx.context, ctx.len) == 0;
+	__security_release_secctx(&ctx);
 	return result;
 }
 
+bool is_ksu_domain(void)
+{
+	current_sid();
+	return is_task_ksu_domain(current_cred());
+}
+
+bool is_context(const struct cred *cred, const char *context)
+{
+	if (!cred) {
+		return false;
+	}
+	const struct task_security_struct *tsec = cred->security;
+	if (!tsec) {
+		return false;
+	}
+	struct lsm_context ctx;
+	bool result;
+	int err = __security_secid_to_secctx(tsec->sid, &ctx);
+	if (err) {
+		return false;
+	}
+	result = strncmp(context, ctx.context, ctx.len) == 0;
+	__security_release_secctx(&ctx);
+	return result;
+}
+
+bool is_zygote(const struct cred *cred)
+{
+	return is_context(cred, "u:r:zygote:s0");
+}
+
+bool is_init(const struct cred *cred)
+{
+	return is_context(cred, "u:r:init:s0");
+}
+
+#define KSU_FILE_DOMAIN "u:object_r:ksu_file:s0"
+
+u32 ksu_get_ksu_file_sid(void)
+{
+	u32 ksu_file_sid = 0;
+	int err = security_secctx_to_secid(
+		KSU_FILE_DOMAIN, strlen(KSU_FILE_DOMAIN), &ksu_file_sid);
+	if (err) {
+		pr_info("get ksufile sid err %d\n", err);
+	}
+	return ksu_file_sid;
+}
+
 #ifdef CONFIG_KSU_SUSFS
+#define KERNEL_INIT_DOMAIN "u:r:init:s0"
+#define KERNEL_ZYGOTE_DOMAIN "u:r:zygote:s0"
+#define KERNEL_PRIV_APP_DOMAIN "u:r:priv_app:s0:c512,c768"
+#ifndef KERNEL_SU_DOMAIN
+#define KERNEL_SU_DOMAIN "u:r:su:s0"
+#endif // #ifndef KERNEL_SU_DOMAIN
+u32 susfs_ksu_sid = 0;
+u32 susfs_init_sid = 0;
+u32 susfs_zygote_sid = 0;
+u32 susfs_priv_app_sid = 0;
+
 static inline void susfs_set_sid(const char *secctx_name, u32 *out_sid)
 {
 	int err;
@@ -239,22 +270,8 @@ bool susfs_is_current_init_domain(void) {
 	return unlikely(current_sid() == susfs_init_sid);
 }
 
-void susfs_set_kernel_sid(void)
+void susfs_set_priv_app_sid(void)
 {
-	susfs_set_sid(KERNEL_KERNEL_DOMAIN, &susfs_kernel_sid);
+	susfs_set_sid(KERNEL_PRIV_APP_DOMAIN, &susfs_priv_app_sid);
 }
 #endif
-
-#define DEVPTS_DOMAIN "u:object_r:ksu_file:s0"
-
-u32 ksu_get_devpts_sid(void)
-{
-	u32 devpts_sid = 0;
-	int err = security_secctx_to_secid(DEVPTS_DOMAIN, strlen(DEVPTS_DOMAIN),
-					   &devpts_sid);
-
-	if (err)
-		pr_info("get devpts sid err %d\n", err);
-
-	return devpts_sid;
-}

@@ -1,44 +1,70 @@
-#ifndef ___SUKISU_KPM_H
-#define ___SUKISU_KPM_H
+#ifndef __SUKISU_KPM_H
+#define __SUKISU_KPM_H
 
-int sukisu_handle_kpm(unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);
-int sukisu_is_kpm_control_code(unsigned long arg2);
+#include <linux/types.h>
+#include <linux/ioctl.h>
 
-// KPM控制代码
-#define CMD_KPM_CONTROL 28
-#define CMD_KPM_CONTROL_MAX 35
+struct ksu_kpm_cmd {
+	__aligned_u64 __user control_code;
+	__aligned_u64 __user arg1;
+	__aligned_u64 __user arg2;
+	__aligned_u64 __user result_code;
+};
 
-// 控制代码
+int sukisu_handle_kpm(unsigned long control_code, unsigned long arg1, unsigned long arg2, unsigned long result_code);
+int sukisu_is_kpm_control_code(unsigned long control_code);
+int do_kpm(void __user *arg);
 
-// prctl(xxx, 28, "PATH", "ARGS")
-// success return 0, error return -N
-#define SUKISU_KPM_LOAD 28
+#define KSU_IOCTL_KPM _IOC(_IOC_READ|_IOC_WRITE, 'K', 200, 0)
 
-// prctl(xxx, 29, "NAME")
-// success return 0, error return -N
-#define SUKISU_KPM_UNLOAD 29
+/* KPM Control Code */
+#define CMD_KPM_CONTROL 1
+#define CMD_KPM_CONTROL_MAX 10
 
-// num = prctl(xxx, 30)
-// error return -N
-// success return +num or 0
-#define SUKISU_KPM_NUM 30
+/* Control Code */
+/*
+ * prctl(xxx, 1, "PATH", "ARGS")
+ * success return 0, error return -N
+ */
+#define SUKISU_KPM_LOAD 1
 
-// prctl(xxx, 31, Buffer, BufferSize)
-// success return +out, error return -N
-#define SUKISU_KPM_LIST 31
+/*
+ * prctl(xxx, 2, "NAME")
+ * success return 0, error return -N
+ */
+#define SUKISU_KPM_UNLOAD 2
 
-// prctl(xxx, 32, "NAME", Buffer[256])
-// success return +out, error return -N
-#define SUKISU_KPM_INFO 32
+/*
+ * num = prctl(xxx, 3)
+ * error return -N
+ * success return +num or 0
+ */
+#define SUKISU_KPM_NUM 3
 
-// prctl(xxx, 33, "NAME", "ARGS")
-// success return KPM's result value
-// error return -N
-#define SUKISU_KPM_CONTROL 33
+/*
+ * prctl(xxx, 4, Buffer, BufferSize)
+ * success return +out, error return -N
+ */
+#define SUKISU_KPM_LIST 4
 
-// prctl(xxx, 34, buffer, bufferSize)
-// success return KPM's result value
-// error return -N
-#define SUKISU_KPM_VERSION 34
+/*
+ * prctl(xxx, 5, "NAME", Buffer[256])
+ * success return +out, error return -N
+ */
+#define SUKISU_KPM_INFO 5
+
+/*
+ * prctl(xxx, 6, "NAME", "ARGS")
+ * success return KPM's result value
+ * error return -N
+ */
+#define SUKISU_KPM_CONTROL 6
+
+/*
+ * prctl(xxx, 7, buffer, bufferSize)
+ * success return KPM's result value
+ * error return -N
+ */
+#define SUKISU_KPM_VERSION 7
 
 #endif
