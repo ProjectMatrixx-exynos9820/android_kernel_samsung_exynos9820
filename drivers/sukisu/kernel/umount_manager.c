@@ -6,6 +6,7 @@
 #include <linux/mount.h>
 #include <linux/fs.h>
 #include <linux/cred.h>
+#include <linux/fs.h>
 
 #include "klog.h"
 #include "kernel_umount.h"
@@ -13,7 +14,7 @@
 
 static struct umount_manager g_umount_mgr = {
     .entry_count = 0,
-    .max_entries = MAX_PATHS,
+    .max_entries = 512,
 };
 
 static void try_umount_path(struct umount_entry *entry)
@@ -32,6 +33,126 @@ static struct umount_entry *find_entry_locked(const char *path)
     }
 
     return NULL;
+}
+
+static bool is_path_in_mount_list(const char *path)
+{
+    struct mount_entry *entry;
+    bool found = false;
+
+    down_read(&mount_list_lock);
+    list_for_each_entry(entry, &mount_list, list) {
+        if (entry->umountable && strcmp(entry->umountable, path) == 0) {
+            found = true;
+            break;
+        }
+    }
+    up_read(&mount_list_lock);
+
+    return found;
+}
+
+static int copy_mount_entry_to_user(struct ksu_umount_entry_info __user *entries,
+                                    u32 idx, const char *path, int flags)
+{
+    struct ksu_umount_entry_info info;
+
+    memset(&info, 0, sizeof(info));
+    strncpy(info.path, path, sizeof(info.path) - 1);
+    info.path[sizeof(info.path) - 1] = '\0';
+    info.flags = flags;
+    info.is_default = 1;
+    info.state = UMOUNT_STATE_IDLE;
+    info.ref_count = 0;
+
+    if (copy_to_user(&entries[idx], &info, sizeof(info))) {
+        return -EFAULT;
+    }
+
+    return 0;
+}
+
+static int copy_umount_entry_to_user(struct ksu_umount_entry_info __user *entries,
+                                      u32 idx, struct umount_entry *entry)
+{
+    struct ksu_umount_entry_info info;
+
+    memset(&info, 0, sizeof(info));
+    strncpy(info.path, entry->path, sizeof(info.path) - 1);
+    info.path[sizeof(info.path) - 1] = '\0';
+    info.flags = entry->flags;
+    info.is_default = entry->is_default;
+    info.state = entry->state;
+    info.ref_count = entry->ref_count;
+
+    if (copy_to_user(&entries[idx], &info, sizeof(info))) {
+        return -EFAULT;
+    }
+
+    return 0;
+}
+
+static int collect_mount_list_entries(struct ksu_umount_entry_info __user *entries,
+                                       u32 max_count, u32 *out_idx)
+{
+    struct mount_entry *mount_entry;
+    u32 idx = 0;
+
+    down_read(&mount_list_lock);
+    list_for_each_entry(mount_entry, &mount_list, list) {
+        if (idx >= max_count) {
+            break;
+        }
+
+        if (!mount_entry->umountable) {
+            continue;
+        }
+
+        if (copy_mount_entry_to_user(entries, idx, mount_entry->umountable,
+                                      mount_entry->flags)) {
+            up_read(&mount_list_lock);
+            return -EFAULT;
+        }
+
+        idx++;
+    }
+    up_read(&mount_list_lock);
+
+    *out_idx = idx;
+    return 0;
+}
+
+static int collect_umount_manager_entries(struct ksu_umount_entry_info __user *entries,
+                                          u32 start_idx, u32 max_count, u32 *out_idx)
+{
+    struct umount_entry *entry;
+    unsigned long flags;
+    u32 idx = start_idx;
+
+    spin_lock_irqsave(&g_umount_mgr.lock, flags);
+
+    list_for_each_entry(entry, &g_umount_mgr.entry_list, list) {
+        if (idx >= max_count) {
+            break;
+        }
+
+        if (is_path_in_mount_list(entry->path)) {
+            continue;
+        }
+
+        spin_unlock_irqrestore(&g_umount_mgr.lock, flags);
+
+        if (copy_umount_entry_to_user(entries, idx, entry)) {
+            return -EFAULT;
+        }
+
+        idx++;
+        spin_lock_irqsave(&g_umount_mgr.lock, flags);
+    }
+
+    spin_unlock_irqrestore(&g_umount_mgr.lock, flags);
+    *out_idx = idx;
+    return 0;
 }
 
 int ksu_umount_manager_init(void)
@@ -71,6 +192,11 @@ int ksu_umount_manager_add(const char *path, int flags, bool is_default)
 
     if (!path || strlen(path) == 0 || strlen(path) >= 256) {
         return -EINVAL;
+    }
+
+    if (is_path_in_mount_list(path)) {
+        pr_warn("Umount manager: path already exists in mount_list: %s\n", path);
+        return -EEXIST;
     }
 
     spin_lock_irqsave(&g_umount_mgr.lock, irqflags);
@@ -151,33 +277,15 @@ out:
     return ret;
 }
 
-static bool is_path_excluded(const char *path, const char **exclude_paths, u32 exclude_count)
-{
-    u32 i;
-    if (!exclude_paths || exclude_count == 0)
-        return false;
-    
-    for (i = 0; i < exclude_count; i++) {
-        if (exclude_paths[i] && strcmp(path, exclude_paths[i]) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void ksu_umount_manager_execute_all(const struct cred *cred, 
-                                    const char **exclude_paths, 
-                                    u32 exclude_count)
+void ksu_umount_manager_execute_all(const struct cred *cred)
 {
     struct umount_entry *entry;
     unsigned long flags;
-    u32 processed_count = 0;
 
     spin_lock_irqsave(&g_umount_mgr.lock, flags);
 
     list_for_each_entry(entry, &g_umount_mgr.entry_list, list) {
-        if (entry->state == UMOUNT_STATE_IDLE && 
-            !is_path_excluded(entry->path, exclude_paths, exclude_count)) {
+        if (entry->state == UMOUNT_STATE_IDLE) {
             entry->ref_count++;
         }
     }
@@ -186,12 +294,7 @@ void ksu_umount_manager_execute_all(const struct cred *cred,
 
     list_for_each_entry(entry, &g_umount_mgr.entry_list, list) {
         if (entry->ref_count > 0 && entry->state == UMOUNT_STATE_IDLE) {
-            if (!is_path_excluded(entry->path, exclude_paths, exclude_count)) {
-                pr_info("umount_manager: Unmounting path: %s (flags: 0x%x)\n", 
-                        entry->path, entry->flags);
-                try_umount_path(entry);
-                processed_count++;
-            }
+            try_umount_path(entry);
         }
     }
 
@@ -208,37 +311,23 @@ void ksu_umount_manager_execute_all(const struct cred *cred,
 
 int ksu_umount_manager_get_entries(struct ksu_umount_entry_info __user *entries, u32 *count)
 {
-    struct umount_entry *entry;
-    struct ksu_umount_entry_info info;
-    unsigned long flags;
-    u32 idx = 0;
     u32 max_count = *count;
+    u32 idx;
+    int ret;
 
-    spin_lock_irqsave(&g_umount_mgr.lock, flags);
+    ret = collect_mount_list_entries(entries, max_count, &idx);
+    if (ret) {
+        return ret;
+    }
 
-    list_for_each_entry(entry, &g_umount_mgr.entry_list, list) {
-        if (idx >= max_count) {
-            break;
+    if (idx < max_count) {
+        ret = collect_umount_manager_entries(entries, idx, max_count, &idx);
+        if (ret) {
+            return ret;
         }
-
-        memset(&info, 0, sizeof(info));
-        strncpy(info.path, entry->path, sizeof(info.path) - 1);
-        info.flags = entry->flags;
-        info.is_default = entry->is_default;
-        info.state = entry->state;
-        info.ref_count = entry->ref_count;
-
-        if (copy_to_user(&entries[idx], &info, sizeof(info))) {
-            spin_unlock_irqrestore(&g_umount_mgr.lock, flags);
-            return -EFAULT;
-        }
-
-        idx++;
     }
 
     *count = idx;
-
-    spin_unlock_irqrestore(&g_umount_mgr.lock, flags);
     return 0;
 }
 

@@ -200,19 +200,6 @@ ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
 $(info -- SukiSU Manager package name: $(KSU_MANAGER_PACKAGE))
 endif
 
-ifndef KSU_FREERUNNER_MANAGER_EXPECTED_SIZE
-KSU_FREERUNNER_MANAGER_EXPECTED_SIZE := 0x30c
-endif
-
-ifndef KSU_FREERUNNER_MANAGER_EXPECTED_HASH
-KSU_FREERUNNER_MANAGER_EXPECTED_HASH := f462864e0ca2940b5e1f1322cd6af973661ae3a1b655fa646a716cf60fcc6d43
-endif
-
-$(info -- KernelSU FreeRunner Manager signature size: $(KSU_FREERUNNER_MANAGER_EXPECTED_SIZE))
-$(info -- KernelSU FreeRunner Manager signature hash: $(KSU_FREERUNNER_MANAGER_EXPECTED_HASH))
-
-ccflags-y += -DEXPECTED_FREERUNNER_MANAGER_SIZE=$(KSU_FREERUNNER_MANAGER_EXPECTED_SIZE)
-ccflags-y += -DEXPECTED_FREERUNNER_MANAGER_HASH=\"$(KSU_FREERUNNER_MANAGER_EXPECTED_HASH)\"
 
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function -Wno-unused-variable
