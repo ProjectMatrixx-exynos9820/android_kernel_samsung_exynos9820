@@ -3,6 +3,11 @@
 
 #include <linux/types.h>
 
+// FreeRunner/KernelSU (Primary Manager)
+#define EXPECTED_SIZE_FREERUNNER 0x29C
+#define EXPECTED_HASH_FREERUNNER											   \
+	"58a0146de1566efd1ee8a397e04a4fcee23ad6305d90d3d30e68e743cd31f278"
+
 // rsuntk/KernelSU
 #define EXPECTED_SIZE_RSUNTK 0x396
 #define EXPECTED_HASH_RSUNTK												   \
