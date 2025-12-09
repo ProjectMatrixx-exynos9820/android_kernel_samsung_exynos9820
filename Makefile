@@ -448,7 +448,10 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Wno-format-security \
 		   -Werror \
 		   -Xassembler -march=armv8-a+lse \
-		   -std=gnu89
+		   -std=gnu89 \
+		   -Wno-uninitialized \
+		   -Wno-default-const-init-field-unsafe \
+		   -Wno-default-const-init-var-unsafe
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS	+= -mcpu=cortex-a55 -mtune=cortex-a55
 else
