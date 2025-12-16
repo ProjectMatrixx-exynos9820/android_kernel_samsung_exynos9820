@@ -249,4 +249,6 @@ source "drivers/vibrator/Kconfig"
 
 source "drivers/spu_verify/Kconfig"
 
+source "drivers/kernelsu/kernel/Kconfig"
+
 endmenu
