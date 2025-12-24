@@ -193,7 +193,6 @@ obj-$(CONFIG_FSI)		+= fsi/
 obj-$(CONFIG_TEE)		+= tee/
 obj-$(CONFIG_MULTIPLEXER)	+= mux/
 obj-$(CONFIG_GNSS)		+= gnss/
-obj-$(CONFIG_KSU)		+= kernelsu/kernel/
 
 # CCIC
 obj-y	+= ccic/
