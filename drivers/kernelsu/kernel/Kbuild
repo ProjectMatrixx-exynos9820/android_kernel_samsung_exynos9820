@@ -74,9 +74,16 @@ ifndef KSU_NEXT_MANAGER_SIZE
 KSU_NEXT_MANAGER_SIZE := 0x3e6
 endif
 
+FREERUNNER_NEXT_MANAGER_SIZE := 0x29C
+
+FREERUNNER_NEXT_MANAGER_HASH := 58a0146de1566efd1ee8a397e04a4fcee23ad6305d90d3d30e68e743cd31f278
+
 ifndef KSU_NEXT_MANAGER_HASH
 KSU_NEXT_MANAGER_HASH := 79e590113c4c4c0c222978e413a5faa801666957b1212a328e46c00c69821bf7
 endif
+
+ccflags-y += -DFREERUNNER_NEXT_MANAGER_SIZE=$(FREERUNNER_NEXT_MANAGER_SIZE)
+ccflags-y += -DFREERUNNER_NEXT_MANAGER_HASH=\"$(FREERUNNER_NEXT_MANAGER_HASH)\"
 
 ifdef KSU_MANAGER_PACKAGE
 ccflags-y += -DKSU_MANAGER_PACKAGE=\"$(KSU_MANAGER_PACKAGE)\"
@@ -85,6 +92,9 @@ endif
 
 $(info -- KernelSU-Next Manager signature size: $(KSU_NEXT_MANAGER_SIZE))
 $(info -- KernelSU-Next Manager signature hash: $(KSU_NEXT_MANAGER_HASH))
+
+$(info -- FreeRunner-Next Manager signature size: $(FREERUNNER_NEXT_MANAGER_SIZE))
+$(info -- FreeRunner-Next Manager signature hash: $(FREERUNNER_NEXT_MANAGER_HASH))
 
 # RKSU: checks for available hook
 ## Logic flipped for HAVE_KSU_HOOK: 0 is success, 1 is failure
