@@ -98,7 +98,7 @@ static int ksu_task_fix_setuid(struct cred *new, const struct cred *old,
 #define DEVPTS_SUPER_MAGIC	0x1cd1
 #endif
 
-int __ksu_handle_devpts(struct inode *inode); // sucompat.c
+extern int __ksu_handle_devpts(struct inode *inode); // sucompat.c
 
 #ifdef CONFIG_COMPAT
 bool ksu_is_compat __read_mostly = false;

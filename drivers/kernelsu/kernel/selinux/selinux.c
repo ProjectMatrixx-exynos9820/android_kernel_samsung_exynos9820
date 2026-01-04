@@ -223,8 +223,13 @@ static inline void susfs_set_sid(const char *secctx_name, u32 *out_sid)
     pr_info("sid '%u' is set for secctx_name '%s'\n", *out_sid, secctx_name);
 }
 
-bool susfs_is_sid_equal(void *sec, u32 sid2) {
-    struct task_security_struct *tsec = (struct task_security_struct *)sec;
+bool susfs_is_sid_equal(const struct cred *cred, u32 sid2) {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 18, 0)
+    const struct task_security_struct *tsec = selinux_cred(cred);
+#else
+    const struct cred_security_struct *tsec = selinux_cred(cred);
+#endif
+
     if (!tsec) {
         return false;
     }
@@ -235,7 +240,7 @@ u32 susfs_get_sid_from_name(const char *secctx_name)
 {
     u32 out_sid = 0;
     int err;
-   
+    
     if (!secctx_name) {
         pr_err("secctx_name is NULL\n");
         return 0;
@@ -264,7 +269,7 @@ bool susfs_is_current_zygote_domain(void) {
 
 void susfs_set_ksu_sid(void)
 {
-    susfs_set_sid(KERNEL_SU_DOMAIN, &susfs_ksu_sid);
+    susfs_set_sid(KERNEL_SU_CONTEXT, &susfs_ksu_sid);
 }
 
 bool susfs_is_current_ksu_domain(void) {

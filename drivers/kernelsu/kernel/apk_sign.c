@@ -315,12 +315,5 @@ module_param_cb(ksu_debug_manager_appid, &expected_size_ops,
 
 bool is_manager_apk(char *path)
 {
-	if (check_v2_signature(path, EXPECTED_MANAGER_SIZE, EXPECTED_MANAGER_HASH)) {
-		return true;
-	}
-	if (check_v2_signature(path, FREERUNNER_NEXT_MANAGER_SIZE, FREERUNNER_NEXT_MANAGER_HASH)) {
-		return true;
-	}
-
-	return false;
+	return check_v2_signature(path, EXPECTED_MANAGER_SIZE, EXPECTED_MANAGER_HASH);
 }

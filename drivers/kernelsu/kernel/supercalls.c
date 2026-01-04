@@ -14,6 +14,7 @@
 #ifdef CONFIG_KSU_SUSFS
 #include <linux/namei.h>
 #include <linux/susfs.h>
+#include "objsec.h"
 #endif // #ifdef CONFIG_KSU_SUSFS
 
 #include "supercalls.h"
@@ -28,9 +29,7 @@
 #include "manager.h"
 #include "selinux/selinux.h"
 #include "file_wrapper.h"
-#ifndef CONFIG_KSU_SUSFS
 #include "syscall_hook_manager.h"
-#endif // #ifndef CONFIG_KSU_SUSFS
 
 #ifdef CONFIG_KSU_SUSFS
 bool susfs_is_boot_completed_triggered __read_mostly = false;
@@ -370,7 +369,6 @@ static int do_get_wrapper_fd(void __user *arg) {
 
 static int do_manage_mark(void __user *arg)
 {
-#ifdef KSU_KPROBES_HOOK
 	struct ksu_manage_mark_cmd cmd;
 	int ret = 0;
 
@@ -459,11 +457,6 @@ static int do_manage_mark(void __user *arg)
 	}
 
 	return 0;
-#else
-	// We don't care, just return -ENOTSUPP
-	pr_warn("manage_mark: this supercalls is not implemented for manual hook.\n");
-	return -ENOTSUPP;
-#endif
 }
 
 static int do_get_hook_mode(void __user *arg)
@@ -716,6 +709,7 @@ static const struct ksu_ioctl_cmd_map ksu_ioctl_handlers[] = {
 	{ .cmd = 0, .name = NULL, .handler = NULL, .perm_check = NULL } // Sentinel
 };
 
+#if defined(KSU_KPROBES_HOOK) && !defined(CONFIG_KSU_SUSFS)
 struct ksu_install_fd_tw {
 	struct callback_head cb;
 	int __user *outp;
@@ -807,20 +801,24 @@ static int reboot_handler_pre(struct kprobe *p, struct pt_regs *regs)
 	return 0;
 }
 
-#ifdef KSU_KPROBES_HOOK
 static struct kprobe reboot_kp = {
 	.symbol_name = REBOOT_SYMBOL,
 	.pre_handler = reboot_handler_pre,
 };
-#endif
-
+#else
 int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 			  void __user **arg)
 {
 	if (magic1 != KSU_INSTALL_MAGIC1)
 		return 0;
 
-// If magic2 is susfs and current process is root
+#ifdef CONFIG_KSU_DEBUG
+	pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1,
+		magic2);
+#endif
+
+#ifdef CONFIG_KSU_SUSFS
+    // If magic2 is susfs and current process is root
     if (magic2 == SUSFS_MAGIC && current_uid().val == 0) {
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
         if (cmd == CMD_SUSFS_ADD_SUS_PATH) {
@@ -914,12 +912,7 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
         }
         return 0;
     }
-
-#ifdef CONFIG_KSU_DEBUG
-	pr_info("sys_reboot: intercepted call! magic: 0x%x id: %d\n", magic1,
-		magic2);
-#endif
-
+#endif // #ifdef CONFIG_KSU_SUSFS
 	// Check if this is a request to install KSU fd
 	if (magic2 == KSU_INSTALL_MAGIC2) {
 		int fd = ksu_install_fd();
@@ -981,6 +974,7 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd,
 
 	return 0;
 }
+#endif
 
 void ksu_supercalls_init(void)
 {
@@ -991,7 +985,7 @@ void ksu_supercalls_init(void)
 		pr_info("  %-18s = 0x%08x\n", ksu_ioctl_handlers[i].name, ksu_ioctl_handlers[i].cmd);
 	}
 
-#ifdef KSU_KPROBES_HOOK
+#if defined(KSU_KPROBES_HOOK) && !defined(CONFIG_KSU_SUSFS)
 	int rc = register_kprobe(&reboot_kp);
 	if (rc) {
 		pr_err("reboot kprobe failed: %d\n", rc);
@@ -1005,9 +999,11 @@ void ksu_supercalls_init(void)
 }
 
 void ksu_supercalls_exit(void){
-#ifdef KSU_KPROBES_HOOK
+#if defined(KSU_KPROBES_HOOK) && !defined(CONFIG_KSU_SUSFS)
 	unregister_kprobe(&reboot_kp);
-#endif
+#else
+    pr_info("susfs: do nothing\n");
+#endif // #ifndef CONFIG_KSU_SUSFS
 }
 
 // IOCTL dispatcher

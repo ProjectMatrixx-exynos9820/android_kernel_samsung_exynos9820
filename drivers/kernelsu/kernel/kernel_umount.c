@@ -146,15 +146,15 @@ int ksu_handle_umount(uid_t old_uid, uid_t new_uid)
 		return 0;
 	}
 
-	// There are 5 scenarios:
-	// 1. Normal app: zygote -> appuid
-	// 2. Isolated process forked from zygote: zygote -> isolated_process
-	// 3. App zygote forked from zygote: zygote -> appuid
-	// 4. Isolated process froked from app zygote: appuid -> isolated_process (already handled by 3)
-	// 5. Isolated process froked from webview zygote (no need to handle, app cannot run custom code)
-	if (!is_appuid(new_uid) && !is_isolated_process(new_uid)) {
-		return 0;
-	}
+    // There are 5 scenarios:
+    // 1. Normal app: zygote -> appuid
+    // 2. Isolated process forked from zygote: zygote -> isolated_process
+    // 3. App zygote forked from zygote: zygote -> appuid
+    // 4. Isolated process froked from app zygote: appuid -> isolated_process (already handled by 3)
+    // 5. Isolated process froked from webview zygote (no need to handle, app cannot run custom code)
+    if (!is_appuid(new_uid) && !is_isolated_process(new_uid)) {
+        return 0;
+    }
 
 	if (!ksu_uid_should_umount(new_uid) && !is_isolated_process(new_uid)) {
 		return 0;
