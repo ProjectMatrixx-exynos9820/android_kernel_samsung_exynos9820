@@ -2659,6 +2659,15 @@ static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
 	}
 
 	/*
+	 * Force-scan anon if clean file pages is under vm.clean_low_kbytes
+	 * or vm.clean_min_kbytes.
+	 */
+	if (sc->clean_below_low || sc->clean_below_min) {
+		scan_balance = SCAN_ANON;
+		goto out;
+	}
+
+	/*
 	 * If there is enough inactive page cache, i.e. if the size of the
 	 * inactive list is greater than that of the active list *and* the
 	 * inactive list actually has some pages to scan on this priority, we
