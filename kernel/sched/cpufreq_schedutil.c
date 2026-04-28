@@ -552,6 +552,11 @@ static unsigned int sugov_next_freq_shared(struct sugov_cpu *sg_cpu, u64 time)
 
 		j_util = j_sg_cpu->util;
 		j_max = j_sg_cpu->max;
+
+#ifdef CONFIG_UCLAMP_TASK
+		j_util = uclamp_util_with(cpu_rq(j), j_util, NULL);
+#endif
+
 		if (j_util * max > j_max * util) {
 			util = j_util;
 			max = j_max;
