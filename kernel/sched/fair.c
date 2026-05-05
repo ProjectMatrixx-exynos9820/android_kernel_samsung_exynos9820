@@ -6867,7 +6867,13 @@ boosted_task_util(struct task_struct *task)
 	unsigned long util_min = uclamp_eff_value(task, UCLAMP_MIN);
 	unsigned long util_max = uclamp_eff_value(task, UCLAMP_MAX);
 
-	return clamp(util, util_min, util_max);
+	if (!task->uclamp_req[UCLAMP_MIN].user_defined) {
+                long margin = schedtune_task_margin(task);
+                trace_sched_boost_task(task, util, margin);
+                return clamp(util + margin, 0UL, util_max);
+        }
+
+        return clamp(util, util_min, util_max);
 #else
 	unsigned long util = task_util_est(task);
 	long margin = schedtune_task_margin(task);
