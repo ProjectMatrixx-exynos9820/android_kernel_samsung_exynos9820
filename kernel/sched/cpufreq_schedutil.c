@@ -441,6 +441,7 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, int cpu)
 #else
 	*util = boosted_cpu_util(cpu);
 #endif
+	*util = uclamp_util_with(cpu_rq(cpu), *util, NULL);
 	*util = min(*util, max_cap);
 	*max = max_cap;
 
