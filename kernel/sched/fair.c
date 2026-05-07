@@ -7929,7 +7929,15 @@ static int wake_cap(struct task_struct *p, int cpu, int prev_cpu)
 
 static bool cpu_overutilized(int cpu)
 {
-	return (capacity_of(cpu) * 1024) < (cpu_util(cpu) * capacity_margin);
+	unsigned long rq_util_min, rq_util_max;
+
+	if (!energy_aware())
+		return (capacity_of(cpu) * 1024) < (cpu_util(cpu) * capacity_margin);
+
+	rq_util_min = READ_ONCE(cpu_rq(cpu)->uclamp[UCLAMP_MIN].value);
+	rq_util_max = READ_ONCE(cpu_rq(cpu)->uclamp[UCLAMP_MAX].value);
+
+	return !util_fits_cpu(cpu_util(cpu), rq_util_min, rq_util_max, cpu);
 }
 
 DEFINE_PER_CPU(struct energy_env, eenv_cache);
