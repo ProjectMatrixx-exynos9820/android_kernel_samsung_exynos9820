@@ -191,8 +191,10 @@ int select_service_cpu(struct task_struct *p)
 		return -1;
 
 	boost = schedtune_prefer_perf(p);
-	if (boost <= 0)
+	if (boost <= 0 && !uclamp_latency_sensitive(p))
 		return -1;
+	if (boost <= 0)
+		boost = 1;
 
 	pp = find_prefer_perf(boost);
 	if (!pp)

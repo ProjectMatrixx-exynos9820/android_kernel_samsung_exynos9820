@@ -67,6 +67,15 @@ static inline struct sched_entity *se_of(struct sched_avg *sa)
 	return container_of(sa, struct sched_entity, avg);
 }
 
+static inline unsigned long ontime_load_avg(struct task_struct *p)
+{
+	unsigned long load_avg = p->se.avg.load_avg;
+
+	unsigned long uclamp_min = uclamp_eff_value(p, UCLAMP_MIN);
+
+	return max(load_avg, uclamp_min);
+}
+
 struct ontime_cond *get_current_cond(int cpu)
 {
 	struct ontime_cond *curr;
@@ -274,7 +283,8 @@ ontime_pick_heavy_task(struct sched_entity *se, int *boost_migration)
 	struct task_struct *p;
 	u32 runnable, max_ratio = 0;
 	int task_count = 0;
-	int boosted = !!global_boosted() || !!schedtune_prefer_perf(task_of(se));
+	int boosted = !!global_boosted() || !!schedtune_prefer_perf(task_of(se)) ||
+                        (uclamp_eff_value(task_of(se), UCLAMP_MIN) > 0);
 
 	/*
 	 * Since current task does not exist in entity list of cfs_rq,
@@ -286,9 +296,8 @@ ontime_pick_heavy_task(struct sched_entity *se, int *boost_migration)
 		return p;
 	}
 
-	if (schedtune_ontime_en(p)) {
-		runnable = ml_task_runnable(p);
-		if (runnable >= get_upper_boundary(task_cpu(p), p)) {
+	if (true) {
+		if (ontime_load_avg(p) >= get_upper_boundary(task_cpu(p), p)) {
 			heaviest_task = p;
 			max_ratio = runnable * 100 / get_cpu_max_capacity(task_cpu(p), p->sse);
 			*boost_migration = 0;
@@ -304,14 +313,13 @@ ontime_pick_heavy_task(struct sched_entity *se, int *boost_migration)
 			goto next_entity;
 
 		p = task_of(se);
-		if (schedtune_prefer_perf(p)) {
+		if (schedtune_prefer_perf(p) || uclamp_latency_sensitive(p)) {
 			heaviest_task = p;
 			*boost_migration = 1;
 			break;
 		}
 
-		if (!schedtune_ontime_en(p))
-			goto next_entity;
+		/* ontime enabled for all tasks */
 
 		runnable = ml_task_runnable(p);
 		if (runnable < get_upper_boundary(task_cpu(p), p))
@@ -559,8 +567,7 @@ int ontime_task_wakeup(struct task_struct *p, int sync)
 	int dst_cpu, src_cpu = task_cpu(p);
 
 	/* If this task is not allowed to ontime, do not ontime wakeup */
-	if (!schedtune_ontime_en(p))
-		return -1;
+	/* ontime enabled for all tasks */
 
 	/* When wakeup task is on ontime migrating, do not ontime wakeup */
 	if (ontime_of(p)->migrating == 1)
@@ -600,8 +607,7 @@ int ontime_can_migration(struct task_struct *p, int dst_cpu)
 	int src_cpu = task_cpu(p);
 	u32 runnable;
 
-	if (!schedtune_ontime_en(p))
-		return true;
+	/* ontime enabled for all tasks, fall through to migration check */
 
 	if (ontime_of(p)->migrating == 1) {
 		trace_ems_ontime_check_migrate(p, dst_cpu, false, "on migrating");

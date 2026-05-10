@@ -3737,7 +3737,7 @@ static inline int task_fits_capacity(struct task_struct *p, long capacity);
 
 #define fits_capacity(cap, max)  ((cap) * 1280 < (max) * 1024)
 
-unsigned long task_util_est(struct task_struct *p);
+static inline unsigned long task_util_est(struct task_struct *p);
 
 static inline int util_fits_cpu(unsigned long util,
                                 unsigned long uclamp_min,
@@ -3911,7 +3911,8 @@ static inline unsigned long task_util_est(struct task_struct *p)
 		return (p->ravg.demand /
 			(walt_ravg_window >> SCHED_CAPACITY_SHIFT));
 #endif
-	return max(task_util(p), _task_util_est(p));
+
+	return max(READ_ONCE(p->se.avg.util_avg), _task_util_est(p));
 }
 
 static inline void util_est_enqueue(struct cfs_rq *cfs_rq,
@@ -6995,11 +6996,10 @@ unsigned long
 boosted_cpu_util(int cpu)
 {
 	unsigned long util = cpu_util_freq(cpu);
-	long margin = schedtune_cpu_margin(util, cpu);
 
-	trace_sched_boost_cpu(cpu, util, margin);
+	trace_sched_boost_cpu(cpu, util, 0);
 
-	return util + margin;
+	return uclamp_util_with(cpu_rq(cpu), util, NULL);
 }
 
 unsigned long
@@ -7010,13 +7010,8 @@ boosted_task_util(struct task_struct *task)
 	unsigned long util_min = uclamp_eff_value(task, UCLAMP_MIN);
 	unsigned long util_max = uclamp_eff_value(task, UCLAMP_MAX);
 
-	if (!task->uclamp_req[UCLAMP_MIN].user_defined) {
-                long margin = schedtune_task_margin(task);
-                trace_sched_boost_task(task, util, margin);
-                return clamp(util + margin, 0UL, util_max);
-        }
-
-        return clamp(util, util_min, util_max);
+	trace_sched_boost_task(task, util, 0);
+	return clamp(util, util_min, util_max);
 #else
 	unsigned long util = task_util_est(task);
 	long margin = schedtune_task_margin(task);
@@ -8121,7 +8116,8 @@ static int find_energy_efficient_cpu(struct sched_domain *sd,
 				break;
 		}
 	} else {
-		int boosted = (schedtune_task_boost(p) > 0);
+		int boosted = (schedtune_task_boost(p) > 0) ||
+                                (uclamp_eff_value(p, UCLAMP_MIN) > 0);
 		int prefer_idle;
 
 		/*
@@ -9053,6 +9049,10 @@ int can_migrate_task(struct task_struct *p, struct lb_env *env)
 	    schedtune_prefer_perf(p))
 		return 0;
 #endif
+        if (smaller_cpu_capacity(env->dst_cpu, env->src_cpu) &&
+            uclamp_latency_sensitive(p))
+                return 0;
+
 
 	if (throttled_lb_pair(task_group(p), env->src_cpu, env->dst_cpu))
 		return 0;
