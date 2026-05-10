@@ -2527,7 +2527,7 @@ static inline bool uclamp_is_used(void)
 #ifdef CONFIG_UCLAMP_TASK_GROUP
 static inline bool uclamp_latency_sensitive(struct task_struct *p)
 {
-	struct cgroup_subsys_state *css = task_css(p, cpuset_cgrp_id);
+	struct cgroup_subsys_state *css = task_css(p, cpu_cgrp_id);
 	struct task_group *tg;
 
 	if (!css)
@@ -2543,7 +2543,7 @@ static inline bool uclamp_latency_sensitive(struct task_struct *p)
 
 static inline bool uclamp_boosted(struct task_struct *p)
 {
-	struct cgroup_subsys_state *css = task_css(p, cpuset_cgrp_id);
+	struct cgroup_subsys_state *css = task_css(p, cpu_cgrp_id);
 	struct task_group *tg;
 
 	if (!css)
