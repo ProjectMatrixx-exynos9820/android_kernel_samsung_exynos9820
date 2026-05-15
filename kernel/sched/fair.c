@@ -73,6 +73,8 @@ unsigned int sysctl_sched_sync_hint_enable = 1;
  * Enable/disable using cstate knowledge in idle sibling selection
  */
 unsigned int sysctl_sched_cstate_aware = 1;
+unsigned int sysctl_sched_min_task_util_for_boost = 51;
+unsigned int sysctl_sched_min_task_util_for_uclamp = 51;
 
 /*
  * The initial- and re-scaling of tunables is configurable
@@ -7011,6 +7013,13 @@ boosted_task_util(struct task_struct *task)
 	unsigned long util_max = uclamp_eff_value(task, UCLAMP_MAX);
 
 	trace_sched_boost_task(task, util, 0);
+
+	if (util <= sysctl_sched_min_task_util_for_boost)
+		return clamp(util, 0UL, util_max);
+
+	if (util_min > 0 && util <= sysctl_sched_min_task_util_for_uclamp)
+		util_min = 0;
+
 	return clamp(util, util_min, util_max);
 #else
 	unsigned long util = task_util_est(task);
